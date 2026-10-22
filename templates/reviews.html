@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <h1>Review Explorer</h1>
+    <p>Search and explore customer reviews with text, image, and sentiment insights.</p>
+</div>
+
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3>{% if search_query %}Results for "{{ search_query }}" ({{ reviews|length }}){% else %}All Reviews ({{ reviews|length }}){% endif %}</h3>
+        <button class="btn-outline">Export</button>
+    </div>
+    
+    <table class="data-table">
+        <thead>
+            <tr><th>Product</th><th>Rating</th><th>Review Snippet</th><th>Sentiment</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+            {% for row in reviews %}
+            <tr>
+                <td><strong>{{ row.product_name }}</strong></td>
+                <td>
+                    {% if row.sentiment == 'Positive' %}★★★★★
+                    {% elif row.sentiment == 'Neutral' %}★★★☆☆
+                    {% else %}★★☆☆☆{% endif %}
+                </td>
+                <td>{{ row.review_text[:80] }}...</td>
+                <td><span class="badge {{ 'red' if row.sentiment == 'Negative' else 'green' if row.sentiment == 'Positive' else 'gray' }}">{{ row.sentiment }}</span></td>
+                <td>{{ row.date_created.strftime('%b %d, %Y') }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" style="text-align:center;">No reviews found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

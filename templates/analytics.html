@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <h1>Product Analytics</h1>
+    <p>Visualize sentiment, defects and trends to uncover actionable insights.</p>
+</div>
+
+<!-- Metrics -->
+<div class="metrics-grid">
+    <div class="metric-card"><p>Total Analyzed</p><h2>{{ total }}</h2></div>
+    <div class="metric-card"><p>Positive</p><h2 style="color: var(--badge-green-text);">{{ pos }}</h2></div>
+    <div class="metric-card"><p>Neutral</p><h2 style="color: var(--text-muted);">{{ neu }}</h2></div>
+    <div class="metric-card"><p>Negative</p><h2 style="color: var(--badge-red-text);">{{ neg }}</h2></div>
+</div>
+
+<!-- Line Chart: Full Width -->
+<div class="card" style="margin-bottom: 20px;">
+    <h3>Sentiment Trends Over Time</h3>
+    <div style="height: 350px; position: relative;">
+        <canvas id="trendChart"></canvas>
+    </div>
+</div>
+
+<!-- Pie and Bar Charts: Side by Side -->
+<div class="analysis-grid" style="grid-template-columns: 1fr 1fr;">
+    
+    <!-- Chart 2: Sentiment Distribution (Pie) -->
+    <div class="card">
+        <h3>Sentiment Distribution (%)</h3>
+        <div style="height: 300px; position: relative;">
+            <canvas id="aspectChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart 3: Top Defect Types (Bar) -->
+    <div class="card">
+        <h3>Top Defect Types</h3>
+        <div style="height: 300px; position: relative;">
+            <canvas id="defectChart"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // --- 1. Line Chart: Sentiment Trends ---
+    const dates = {{ dates | tojson }};
+    const posTrend = {{ pos_trend | tojson }};
+    const neuTrend = {{ neu_trend | tojson }};
+    const negTrend = {{ neg_trend | tojson }};
+
+    const trendCtx = document.getElementById('trendChart').getContext('2d');
+    new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: dates.length ? dates : ['No Data'],
+            datasets: [
+                {
+                    label: 'Positive',
+                    data: posTrend.length ? posTrend : [0],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                },
+                {
+                    label: 'Neutral',
+                    data: neuTrend.length ? neuTrend : [0],
+                    borderColor: '#64748b',
+                    backgroundColor: 'rgba(100, 116, 139, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                },
+                {
+                    label: 'Negative',
+                    data: negTrend.length ? negTrend : [0],
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'top' } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        }
+    });
+
+    // --- 2. Pie Chart: Sentiment Distribution ---
+    // We use the raw total, pos, neu, neg counts directly
+    const posCount = {{ pos }};
+    const neuCount = {{ neu }};
+    const negCount = {{ neg }};
+    
+    const aspectCtx = document.getElementById('aspectChart').getContext('2d');
+    new Chart(aspectCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Positive', 'Neutral', 'Negative'],
+            datasets: [{
+                data: [posCount, neuCount, negCount],
+                backgroundColor: ['#10b981', '#64748b', '#ef4444'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            let value = context.raw;
+                            let percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+                            return ` ${context.label}: ${value} (${percentage})`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // --- 3. Bar Chart: Top Defect Types ---
+    const defectData = {{ defects | tojson }};
+    const defectCtx = document.getElementById('defectChart').getContext('2d');
+    new Chart(defectCtx, {
+        type: 'bar',
+        data: {
+            labels: defectData.length ? defectData.map(item => item.name) : ['No Defects Found'],
+            datasets: [{
+                label: 'Occurrences',
+                data: defectData.length ? defectData.map(item => item.count) : [0],
+                backgroundColor: '#ef4444',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+            plugins: { legend: { display: false } }
+        }
+    });
+</script>
+{% endblock %}

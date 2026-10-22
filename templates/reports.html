@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <h1>Reports & Insights</h1>
+        <p>AI-generated insights and downloadable reports for decision makers.</p>
+    </div>
+    <div>
+        <button onclick="exportCSV()" class="btn-primary" style="width: auto; background: #1e293b;">Export CSV</button>
+    </div>
+</div>
+
+<!-- AI Summary -->
+<div class="card" style="background: #f0fdf4; border-left: 4px solid var(--badge-green-text);">
+    <h3 style="color: var(--badge-green-text);">AI Executive Summary</h3>
+    <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-main);">
+        We analyzed <strong>{{ total }} reviews</strong>. We detected <strong>{{ critical_severity }} Critical</strong> and <strong>{{ high_severity }} High-Severity</strong> defects requiring immediate attention.
+        {% if top_defects %}
+            The most recurring issue is <strong>{{ top_defects[0].name }}</strong> ({{ top_defects[0].count }} mentions).
+        {% endif %}
+        Evidence agreement between text and images is highly consistent. Immediate action on flagged high-severity issues is recommended to prevent churn.
+    </p>
+</div>
+
+<div class="analysis-grid" style="grid-template-columns: 1fr 2fr;">
+    <!-- Key Findings -->
+    <div class="card">
+        <h3>Key Findings</h3>
+        <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
+            {% for defect in top_defects %}
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+                <div>
+                    <strong style="font-size: 0.9rem;">{{ defect.name }}</strong>
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">{{ defect.count }} occurrences</p>
+                </div>
+                <span class="badge red">High Impact</span>
+            </div>
+            {% else %}
+            <p style="font-size: 0.85rem; color: var(--text-muted);">No recurring defects detected yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recent Critical Issues -->
+    <div class="card">
+        <h3>Actionable Issues (Recent)</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Issue</th>
+                    <th>Severity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in recent_issues %}
+                <tr>
+                    <td><strong>{{ row.product_name }}</strong></td>
+                    <td>{{ row.summary[:60] }}...</td>
+                    <td><span class="badge {{ 'red' if row.severity == 'Critical' or row.severity == 'High' else 'gray' }}">{{ row.severity }}</span></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3">No critical issues found. Good job!</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function exportCSV() {
+        // Generate a simple CSV from the current database data
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "SYNTRIQ EXECUTIVE REPORT\n";
+        csvContent += "Total Reviews,{{ total }}\n";
+        csvContent += "High Severity,{{ high_severity }}\n";
+        csvContent += "Critical Severity,{{ critical_severity }}\n\n";
+        
+        csvContent += "Top Defects,Count\n";
+        {% for defect in top_defects %}
+        csvContent += "{{ defect.name }},{{ defect.count }}\n";
+        {% endfor %}
+        
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "SYNTRIQ_Executive_Report.csv");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    }
+</script>
+{% endblock %}

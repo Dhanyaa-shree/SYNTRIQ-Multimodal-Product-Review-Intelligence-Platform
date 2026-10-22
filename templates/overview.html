@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <h1>Overview Dashboard</h1>
+    <p>Understand customer feedback. Detect defects. Improve product quality.</p>
+</div>
+
+<div class="metrics-grid">
+    <div class="metric-card">
+        <p>Reviews Analyzed</p>
+        <h2>{{ total }}</h2>
+        <span class="trend-up"><i class="fa-solid fa-arrow-up"></i> Live Data</span>
+    </div>
+    <div class="metric-card">
+        <p>Negative Reviews</p>
+        <h2 style="color: var(--badge-red-text);">{{ neg_percent }}</h2>
+        <span class="trend-down">Requires attention</span>
+    </div>
+    <div class="metric-card">
+        <p>Defect Signals</p>
+        <h2>--</h2>
+        <p style="font-size: 0.75rem; color: var(--text-muted);">Processed via LLM</p>
+    </div>
+    <div class="metric-card">
+        <p>Actionable Issues</p>
+        <h2>--</h2>
+        <p style="font-size: 0.75rem; color: var(--text-muted);">High priority</p>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Recent Reviews</h3>
+    <table class="data-table">
+        <thead>
+            <tr><th>Product</th><th>Review Snippet</th><th>Intent</th><th>Sentiment</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+            {% for row in recent %}
+            <tr>
+                <td><strong>{{ row.product_name }}</strong></td>
+                <td>{{ row.review_text[:60] }}...</td>
+                <td>{{ row.intent }}</td>
+                <td><span class="badge {{ 'red' if row.sentiment == 'Negative' else 'green' if row.sentiment == 'Positive' else 'gray' }}">{{ row.sentiment }}</span></td>
+                <td>{{ row.date_created.strftime('%b %d, %Y') }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" style="text-align:center; padding: 20px;">No reviews yet. Go to Image Analysis to add one.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

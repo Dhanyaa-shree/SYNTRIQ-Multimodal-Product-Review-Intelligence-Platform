@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <h1>Multimodal Analysis</h1>
+    <p>Submit a review with text and images for intelligent multimodal analysis.</p>
+</div>
+
+<div class="analysis-grid">
+    <!-- Input Form -->
+    <div class="card">
+        <h3>Review Information</h3>
+        <form id="analysisForm">
+            <div class="form-group">
+                <label>Product Name *</label>
+                <input type="text" name="product_name" required placeholder="e.g. Wireless Headphones">
+            </div>
+            
+            <div class="form-group">
+                <label>Customer Rating *</label>
+                <select name="rating" required style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 5px;">
+                    <option value="5">5 Stars - Excellent</option>
+                    <option value="4">4 Stars - Good</option>
+                    <option value="3">3 Stars - Average</option>
+                    <option value="2">2 Stars - Poor</option>
+                    <option value="1">1 Star - Terrible</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Review Text *</label>
+                <textarea name="review_text" id="review_text" rows="4" required placeholder="The right ear cup stopped working..."></textarea>
+            </div>
+            
+            <h3>Images</h3>
+            <div class="upload-box" style="margin-bottom: 20px; position: relative;">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <p style="font-size: 0.85rem;">Click to upload Customer Image</p>
+                <input type="file" name="customer_image" accept="image/*" required style="opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer;" id="customer_image">
+                <p id="file-name" style="font-size: 0.75rem; color: var(--primary); margin-top: 5px;">No file selected</p>
+            </div>
+
+            <button type="button" class="btn-primary" onclick="runAnalysis()">Analyze Review</button>
+        </form>
+    </div>
+
+    <!-- Results Panel -->
+    <div class="card" id="resultsPanel" style="display: none;">
+        <h3>Analysis Results</h3>
+        
+        <!-- Low Confidence Warning (Req 13) -->
+        <div id="low-confidence-warning" style="display: none; background: #fee2e2; border: 1px solid #ef4444; padding: 10px; border-radius: 6px; margin-bottom: 15px; color: #b91c1c;">
+            <strong>⚠️ Low Confidence:</strong> This prediction may be inaccurate. Manual human review is recommended.
+        </div>
+
+        <div style="position: relative; display: inline-block; margin-bottom: 15px;">
+            <img id="res-image" src="" style="max-width: 100%; border-radius: 6px;">
+            <div id="defect-box" style="display: none; position: absolute; border: 3px solid red; background: rgba(255,0,0,0.2); border-radius: 4px;">
+                <span style="background: red; color: white; font-size: 10px; padding: 2px 5px; position: absolute; top: -20px; left: -3px; font-weight: bold;">DETECTED</span>
+            </div>
+        </div>
+
+        <div class="result-row"><strong>Sentiment:</strong> <span id="res-sentiment" class="badge gray">-</span></div>
+        <div class="result-row"><strong>Confidence:</strong> <span id="res-confidence">-</span></div>
+        <div class="result-row"><strong>Evidence Match:</strong> <span id="res-consistency">-</span></div>
+
+        <h3 style="margin-top: 15px;">LLM Business Insight</h3>
+        <div class="result-row"><strong>Summary:</strong> <span id="res-summary">-</span></div>
+        <div class="result-row"><strong>Aspect:</strong> <span id="res-aspect">-</span></div>
+        <div class="result-row"><strong>Intent:</strong> <span id="res-intent">-</span></div>
+        <div class="result-row"><strong>Severity:</strong> <span id="res-severity" class="badge red">-</span></div>
+        <div class="result-row"><strong>Defect Type:</strong> <span id="res-defect">-</span></div>
+
+        <!-- NEW: Detailed Explanation and Action -->
+        <div style="margin-top: 15px; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid var(--border);">
+            <h4 style="margin-bottom: 5px; color: var(--text-main);">Detailed Explanation</h4>
+            <p id="res-explanation" style="font-size: 0.85rem; line-height: 1.5; color: var(--text-muted);">-</p>
+            
+            <h4 style="margin-top: 15px; margin-bottom: 5px; color: var(--text-main);">Recommended Action</h4>
+            <p id="res-action" style="font-size: 0.85rem; line-height: 1.5; color: var(--text-muted);">-</p>
+        </div>
+
+        <!-- NEW: Report Generation Section -->
+        <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;">
+            <h3>📄 Generated Report</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">
+                Export this analysis for your records or team.
+            </p>
+            <button onclick="downloadReport()" class="btn-primary" style="background: #1e293b; margin-bottom: 10px;">
+                <i class="fa-solid fa-download"></i> Download Text Report
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('customer_image').addEventListener('change', function(e) {
+        var file = e.target.files[0];
+        if (file) {
+            document.getElementById('file-name').innerText = file.name;
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('resultsPanel').style.display = 'block';
+                document.getElementById('res-image').src = e.target.result;
+                document.getElementById('defect-box').style.display = 'none';
+                document.getElementById('low-confidence-warning').style.display = 'none';
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+{% endblock %}

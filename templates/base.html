@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SYNTRIQ - Multimodal Product Review Intelligence</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo-area">
+            <span class="logo-icon">S</span>
+            <span class="logo-title">SYNTRIQ</span>
+            <!-- Bold, Highlighted Subtitle -->
+            <span class="logo-sub">Multimodal Product Review Intelligence Platform</span>
+        </div>
+        <div class="nav-links">
+            <a href="/" class="{{ 'active' if active_page == 'overview' else '' }}">Overview</a>
+            <a href="/reviews" class="{{ 'active' if active_page == 'reviews' else '' }}">Reviews</a>
+            <a href="/analysis" class="{{ 'active' if active_page == 'analysis' else '' }}">Image Analysis</a>
+            <a href="/analytics" class="{{ 'active' if active_page == 'analytics' else '' }}">Analytics</a>
+            <a href="/reports" class="{{ 'active' if active_page == 'reports' else '' }}">Reports</a>
+        </div>
+    </nav>
+
+    <!-- Top Global Search Bar -->
+    <div class="top-bar">
+        <form action="/reviews" method="GET" class="search-container">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" name="q" placeholder="Search products, reviews, defects..." value="{{ request.args.get('q', '') }}">
+            <button type="submit" style="background: transparent; border: none; cursor: pointer; color: var(--text-muted);"><i class="fa-solid fa-arrow-right"></i></button>
+        </form>
+        <div class="top-actions">
+            <i class="fa-regular fa-bell"></i>
+            <i class="fa-regular fa-user"></i>
+        </div>
+    </div>
+
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
